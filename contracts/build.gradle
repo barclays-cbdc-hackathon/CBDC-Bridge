@@ -1,0 +1,41 @@
+apply plugin: 'net.corda.plugins.cordapp'
+
+cordapp {
+    targetPlatformVersion cordaPlatformVersion.toInteger()
+    minimumPlatformVersion cordaPlatformVersion.toInteger()
+    contract {
+        name "Barclays CBDC Hackathon 2022 Contracts"
+        vendor "Corda Open Source"
+        licence "Apache License, Version 2.0"
+        versionId 1
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    // Corda dependencies.
+    cordaCompile "$cordaCoreReleaseGroup:corda-core:$cordaCoreVersion"
+    testCompile "$cordaReleaseGroup:corda-node-driver:$cordaVersion"
+}
+
+quasar {
+    excludePackages = [
+            'org.jetbrains.kotlin.com.intellij**',
+            'io.gitlab.arturbosch**'
+    ]
+}
+
+task detekt(type: JavaExec) {
+    main = "io.gitlab.arturbosch.detekt.cli.Main"
+    classpath = configurations.detekt
+    def input = "$projectDir"
+    def config = "${project.rootDir}/detekt-config.yml"
+    def baseline = "${project.rootDir}/detekt-baseline.xml"
+    def excludes = "**/test/**,.*/resources/.*"
+    def output = "$projectDir/build/reports/detekt/detekt.html"
+    def outputXml = "$projectDir/build/reports/detekt/detekt.xml"
+    def outputSarif = "$projectDir/build/reports/detekt/detekt.sarif"
+    def params = ['-i', input, '-c', config, '-b', baseline,'-ex', excludes, '-r', "html:$output", "-r", "xml:$outputXml",'-r',"sarif:$outputSarif"]
+    args(params)
+}
+
