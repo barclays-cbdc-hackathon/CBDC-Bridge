@@ -1,0 +1,6240 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "Barclays 2022 CBDC Hackathon API",
+		"description": "API for the Barclays 2022 CBDC Hackathon.\n\nCBDC: 'A digital payment instrument, denominated in the national unit of account, that is a direct liability of the central bank' - Bank for International Settlements (BIS).\n",
+		"version": "0.0.1"
+	},
+	"servers": [
+		{
+			"url": "https://cbdchackathon-dev.barclays.nayaone.com/",
+			"description": "hello"
+		}
+	],
+	"security": [
+		{
+			"x-api-key": []
+		}
+	],
+	"tags": [
+		{
+			"name": "Start Here!",
+			"description": "Use these ping endpoints to test that you are able to hit the hackathon APIs successfully.\n\nThe `/public-ping` API does not need you to provide an API key and is useful to test that your requests are reaching the hackathon server.\n\nThe `/auth-ping` API requires your team's API key and is useful to test you are authenticating correctly.\n\nIf you are able to hit both APIs and successfully receive a \"pong\" back then you are ready to rock and roll\nand interact with the rest of the APIs for the hackathon challenges.\n"
+		},
+		{
+			"name": "Sandbox Environment",
+			"description": "APIs to create, view and terminate your sandbox environment(s).\n\nThe ID for the environment you create will be needed as a header value, `x-env-id`, for the majority of other API calls.\n\nThe environment designates the boundary in which all of the resources you create (currencies, accounts, etc.) will exist.\n\nYou can have a maximum of 10 active environments at the same time (although it is recommended you keep only 1).\n"
+		},
+		{
+			"name": "Currency",
+			"description": "APIs to create, view and terminate currencies within your environment.\n\nEach currency that you create will automatically have an associated CBDC ledger which is managed by that currency's central bank.\n\nYou can also create `/commercial-banks` and `/pips` (payment interface providers) that are associated with a specific currency.\n"
+		},
+		{
+			"name": "CBDC Ledger",
+			"description": "APIs to access the CBDC ledger for a given currency.\n\nIn the Bank of England's platform model this API would only ever be exposed to Payment Interface Providers (PIPs).\nPIPs are regulated entities that have access to the CBDC core ledger.\n\n- Prior to interacting with these APIs you need to ensure you have created a PIP\n  (use the `/pips` APIs to do this).\n- You also need to make sure to attach a valid PIP identifier in the `x-pip-id` header for all requests to these APIs.\n  This will be the PIP which the core ledger API assumes is making the request.\n"
+		},
+		{
+			"name": "Commercial Banks",
+			"description": "Manage commercial banks for your currency."
+		},
+		{
+			"name": "Payment Interface Providers (PIPs)",
+			"description": "Manage PIPs within your environment."
+		},
+		{
+			"name": "Ecosystem Service: Domestic Payment Processor",
+			"description": "A financial market infrastructure (FMI) entity which processes domestic payments."
+		},
+		{
+			"name": "Open Banking: Account Information Service Provider (AISP)",
+			"description": "Interact with accounts owned by other banking entities."
+		},
+		{
+			"name": "Open Banking: Payment Initiation Service Provider (PISP)",
+			"description": "This API has not yet ben implemented. It will be available in a future release."
+		}
+	],
+	"paths": {
+		"/pips": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-details-page",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "PIP Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPIPDetailsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": "Create a new Payment Interface Provider.",
+				"description": "Create a new PIP which will have access to the CBDC ledger for the given currency.",
+				"operationId": "create-new-pip",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreatePaymentInterfaceProviderRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "PIP made.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatePaymentInterfaceProviderResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/parties": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-party-page-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Parties page.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyViewsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": "Register a party with the PIP.",
+				"description": "Register a party with a PIP. Once registered you can then open accounts belonging to that party. In the real world the registration would also include performing KYC and AML checks.",
+				"operationId": "create-new-pip-party",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterPartyRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Payment made.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RegisterPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/accounts": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-account-page",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Page containing account Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": "Open a CBDC account at the payment interface provider.",
+				"description": "Opens a CBDC account in the given currency at the payment interface provider. This account is essentially a proxy for the CBDC account stored on the central bank's core ledger. You need to provide a reference to the ID of the party which is opening the account in the request body.",
+				"operationId": "open-pip-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OpenAccountRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Account Opened.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OpenAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/accounts/{account_id}/withdrawal": {
+			"post": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "withdraw-from-pip-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeWithdrawalRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Updated account details after the withdrawal.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/accounts/{account_id}/deposit": {
+			"post": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "deposit-into-pip-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeDepositRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Updated account details after the deposit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/pisp/domestic-payments": {
+			"post": {
+				"tags": [
+					"Open Banking: Payment Initiation Service Provider (PISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-make-payment",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-consent-id",
+						"in": "header",
+						"description": "Identifier for the consent resource which grants access to perform this request.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeDomesticPaymentRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Payment triggered.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MakeDomesticPaymentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/pisp/domestic-payment-consents": {
+			"post": {
+				"tags": [
+					"Open Banking: Payment Initiation Service Provider (PISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-create-payment-consent",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OpenBankingPaymentConsentCreationRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Consent created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatePaymentConsentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/aisp/account-access-consents": {
+			"post": {
+				"tags": [
+					"Open Banking: Account Information Service Provider (AISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-create-account-access-consent",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OpenBankingAccountAccessConsentCreationRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Consent created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateAccountAccessConsentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/envs": {
+			"get": {
+				"tags": [
+					"Sandbox Environment"
+				],
+				"summary": "Retrieve a page listing the environments you have created.",
+				"description": "Retrieve a page listing the environments you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n\nYou cannot request a `pageSize` greater than  1000.",
+				"operationId": "get-envs",
+				"parameters": [
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Page containing details of the environments.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetEnvironmentDetailsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Sandbox Environment"
+				],
+				"summary": "Create new environment.",
+				"description": "Create a fresh, new environment which you can use to experiment with.",
+				"operationId": "create-new-env",
+				"responses": {
+					"201": {
+						"description": "Environment created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateNewEnvironmentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/domestic-payments": {
+			"post": {
+				"tags": [
+					"Ecosystem Service: Domestic Payment Processor"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "domestic-payment-ecosystem-service-make-payment",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeDomesticPaymentRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Payment triggered.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MakeDomesticPaymentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/currencies": {
+			"get": {
+				"tags": [
+					"Currency"
+				],
+				"summary": "Retrieve a page listing the currencies you have created.",
+				"description": "Retrieve a page listing the currencies you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n\nYou cannot request a `pageSize` greater than  1000.",
+				"operationId": "get-currencies-page",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Currency Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrencyDetailsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Currency"
+				],
+				"summary": "Create a new currency within an environment.",
+				"description": "Create a new currency.",
+				"operationId": "create-currency",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCurrencyRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Currency created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateCurrencyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-details-page",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Commercial Bank Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCommercialBankDetailsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": "Create a new commercial bank entity.",
+				"description": "Create a new commercial bank which will manage its own ledger in the given currency.",
+				"operationId": "create-new-commercial-bank",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCommercialBankRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Commercial Bank Created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateCommercialBankResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/parties": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-party-page-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Parties page.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyViewsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": "Register a party with the commercial bank.",
+				"description": "Register a party with the commercial bank. Once registered you can then open accounts belonging to that party. In the real world the registration would also include performing KYC and AML checks.",
+				"operationId": "register-commercial-bank-party",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterPartyRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Party Registered.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RegisterPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/accounts": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-accounts-page",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "pageIndex",
+						"in": "query",
+						"description": "Zero-based page index (0..N) of the page you want to return.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "pageSize",
+						"in": "query",
+						"description": "The max. number of items (size) a page will contain.",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountsPageResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": "Open an account at the commercial bank.",
+				"description": "Open an account at the commercial bank. You need to provide a reference to the ID of the party which is opening the account in the request body.",
+				"operationId": "open-commercial-bank-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OpenAccountRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Account Opened.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OpenAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/accounts/{account_id}/withdrawal": {
+			"post": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "withdraw-from-commercial-bank-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeWithdrawalRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Updated account details after the withdrawal.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/accounts/{account_id}/deposit": {
+			"post": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": "Deposit.",
+				"description": ".",
+				"operationId": "deposit-into-commercial-bank-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeDepositRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Updated account details after the deposit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cbdc-ledger/accounts": {
+			"post": {
+				"tags": [
+					"CBDC Ledger"
+				],
+				"summary": "Open a CBDC account on the central bank's core ledger.",
+				"description": "Open a CBDC account on the core ledger of the central bank. This API endpoint is intended to be used by PIPs.",
+				"operationId": "open-cbdc-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-pip-id",
+						"in": "header",
+						"description": "Identifier for the pip which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Account Opened.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OpenAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cbdc-ledger/accounts/{account_id}/withdrawal": {
+			"post": {
+				"tags": [
+					"CBDC Ledger"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "withdraw-from-cbdc-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-pip-id",
+						"in": "header",
+						"description": "Identifier for the pip which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeWithdrawalRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Account Description.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCBDCAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cbdc-ledger/accounts/{account_id}/deposit": {
+			"post": {
+				"tags": [
+					"CBDC Ledger"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "deposit-into-cbdc-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-pip-id",
+						"in": "header",
+						"description": "Identifier for the pip which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MakeDepositRequestBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Account Description.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCBDCAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/start-here/public-ping": {
+			"get": {
+				"tags": [
+					"Start Here!"
+				],
+				"summary": "Send a HTTP ping request and expect a pong back if everything is OK.",
+				"description": "Useful for testing whether you can reach the server or not. This request does not require you to provide the API key.",
+				"operationId": "public-ping",
+				"responses": {
+					"200": {
+						"description": "pong.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PingResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": []
+			}
+		},
+		"/start-here/auth-ping": {
+			"get": {
+				"tags": [
+					"Start Here!"
+				],
+				"summary": "Send a HTTP ping request and expect a pong back if everything is OK. Requires you to be authenticated for the request to succeed.",
+				"description": "Useful for testing whether you can reach the server or not. This request does not require you to provide your team's API key.",
+				"operationId": "auth-ping",
+				"responses": {
+					"200": {
+						"description": "pong.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PingResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "PIP Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPIPDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "terminate-pip",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Terminated PIP Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPIPDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/parties/{party_id}": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-party",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "party_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Party Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "deregister-pip-party",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "party_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Party Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pips/{pip_id}/accounts/{account_id}": {
+			"get": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "get-pip-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Payment Interface Providers (PIPs)"
+				],
+				"summary": ".",
+				"operationId": "close-pip-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "pip_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Description.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/pisp/domestic-payments/{domestic_payment_id}": {
+			"get": {
+				"tags": [
+					"Open Banking: Payment Initiation Service Provider (PISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-get-payment",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-consent-id",
+						"in": "header",
+						"description": "Identifier for the consent resource which grants access to perform this request.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "domestic_payment_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Payment details retrieved.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetDomesticPaymentDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/pisp/domestic-payment-consents/{consent_id}": {
+			"get": {
+				"tags": [
+					"Open Banking: Payment Initiation Service Provider (PISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-get-payment-consent",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "consent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Consent details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPaymentConsentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/aisp/accounts/{account_id}": {
+			"get": {
+				"tags": [
+					"Open Banking: Account Information Service Provider (AISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-get-account-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-consent-id",
+						"in": "header",
+						"description": "Identifier for the consent resource which grants access to perform this request.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/aisp/accounts/{account_id}/party": {
+			"get": {
+				"tags": [
+					"Open Banking: Account Information Service Provider (AISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-get-party-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-consent-id",
+						"in": "header",
+						"description": "Identifier for the consent resource which grants access to perform this request.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Party details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/open-banking/aisp/account-access-consents/{consent_id}": {
+			"get": {
+				"tags": [
+					"Open Banking: Account Information Service Provider (AISP)"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "ob-get-account-access-consent",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-requesting-banking-entity-id",
+						"in": "header",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "consent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Consent details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetAccountAccessConsentResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/envs/{env_id}": {
+			"get": {
+				"tags": [
+					"Sandbox Environment"
+				],
+				"summary": "Retrieve a description of a specific environment.",
+				"description": "Returns a description of a specific environment.",
+				"operationId": "get-env",
+				"parameters": [
+					{
+						"name": "env_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Environment details",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetEnvironmentDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Sandbox Environment"
+				],
+				"summary": "Terminate a environment.",
+				"description": "Terminates a environment so it will no longer be available for experimentation. All child resources of the environment (ledgers/accounts/etc.) must be terminated prior to issuing this request otherwise the request will fail.",
+				"operationId": "terminate-env",
+				"parameters": [
+					{
+						"name": "env_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Environment details",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetEnvironmentDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/domestic-payments/{domestic_payment_id}": {
+			"get": {
+				"tags": [
+					"Ecosystem Service: Domestic Payment Processor"
+				],
+				"summary": ".",
+				"description": ".",
+				"operationId": "domestic-payment-ecosystem-service-get-payment",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "domestic_payment_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Payment details retrieved.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetDomesticPaymentDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/currencies/{currency_id}": {
+			"get": {
+				"tags": [
+					"Currency"
+				],
+				"summary": "Retrieve details about a specific currency.",
+				"description": "Retrieve details about a specific currency including the CBDC accounts on the currency's core ledger, as well as the commercial banks and pips registered to operate within that currency.",
+				"operationId": "get-currency",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "currency_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Currency Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrencyDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Currency"
+				],
+				"summary": "Terminate a currency (and by extension it's CBDC Ledger and other child resources).",
+				"description": "Terminates a currency. This will mean the CBDC ledger for that currency will no longer be available for experimentation.\nAll child resources of the currency (the CBDC ledger accounts, the PIPs, the Commercial Banks) must be terminated\nprior to issuing this request, otherwise the request will fail.",
+				"operationId": "terminate-currency",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "currency_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Currency Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrencyDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Commercial Bank Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCommercialBankDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "terminate-commercial-bank",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Commercial Bank Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCommercialBankDetailsResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/parties/{party_id}": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-party-details",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "party_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Party Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "deregister-commercial-bank-party",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "party_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Party Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetPartyResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/commercial-banks/{bank_id}/accounts/{account_id}": {
+			"get": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "get-commercial-bank-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Commercial Banks"
+				],
+				"summary": ".",
+				"operationId": "close-commercial-bank-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "bank_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetBankingEntityAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cbdc-ledger/accounts/{account_id}": {
+			"get": {
+				"tags": [
+					"CBDC Ledger"
+				],
+				"summary": ".",
+				"operationId": "get-cbdc-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-pip-id",
+						"in": "header",
+						"description": "Identifier for the pip which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Description.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCBDCAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"CBDC Ledger"
+				],
+				"summary": ".",
+				"operationId": "close-cbdc-account",
+				"parameters": [
+					{
+						"name": "x-env-id",
+						"in": "header",
+						"description": "Identifier for the environment.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-currency-id",
+						"in": "header",
+						"description": "Identifier for the currency.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "x-pip-id",
+						"in": "header",
+						"description": "Identifier for the pip which you are simulating is making this API call.",
+						"required": true,
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							}
+						}
+					},
+					{
+						"name": "account_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Account Description.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCBDCAccountResponseBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad/Invalid request.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Account": {
+				"type": "object",
+				"properties": {
+					"accountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"OPEN",
+							"CLOSED"
+						]
+					}
+				}
+			},
+			"AccountAccessConsentView": {
+				"type": "object",
+				"properties": {
+					"accountAccessConsentId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"AWAITING_AUTHORISATION",
+							"REJECTED",
+							"AUTHORISED",
+							"REVOKED"
+						]
+					},
+					"consentRequestingPartyId": {
+						"$ref": "#/components/schemas/RequestingPartyId"
+					},
+					"consentRequestingBankingEntityRef": {
+						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+					},
+					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					}
+				}
+			},
+			"BadRequestResponse": {
+				"type": "object",
+				"properties": {
+					"statusCode": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"BankingEntityAccountView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"OPEN",
+							"CLOSED"
+						]
+					},
+					"accountOwningPartyId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"openingDate": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"currency": {
+						"$ref": "#/components/schemas/Currency"
+					},
+					"balance": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"formattedBalance": {
+						"type": "string"
+					}
+				}
+			},
+			"BankingEntityWhereRequestingPartyIsRegisteredRef": {
+				"type": "object",
+				"properties": {
+					"bankingEntityType": {
+						"type": "string",
+						"enum": [
+							"PAYMENT_INTERFACE_PROVIDER",
+							"COMMERCIAL_BANK"
+						]
+					},
+					"bankingEntityId": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CBDCAccountChild": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"accountOwningPIPId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"OPEN",
+							"CLOSED"
+						]
+					}
+				}
+			},
+			"CBDCAccountView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"accountOwningPIPId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"OPEN",
+							"CLOSED"
+						]
+					},
+					"openingDate": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"currency": {
+						"$ref": "#/components/schemas/Currency"
+					},
+					"balance": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"formattedBalance": {
+						"type": "string"
+					}
+				}
+			},
+			"CommercialBankChild": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					}
+				}
+			},
+			"CommercialBankView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					},
+					"currency": {
+						"$ref": "#/components/schemas/Currency"
+					},
+					"commercialBankName": {
+						"type": "string"
+					},
+					"parties": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RegisteredParty"
+						}
+					},
+					"accounts": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Account"
+						}
+					}
+				}
+			},
+			"CreateAccountAccessConsentResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreateAccountAccessConsentResponseBodyData"
+					}
+				}
+			},
+			"CreateAccountAccessConsentResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreateCommercialBankRequestBody": {
+				"type": "object",
+				"properties": {
+					"commercialBankName": {
+						"type": "string"
+					}
+				}
+			},
+			"CreateCommercialBankResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreateCommercialBankResponseBodyData"
+					}
+				}
+			},
+			"CreateCommercialBankResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreateCurrencyRequestBody": {
+				"type": "object",
+				"properties": {
+					"currencyCode": {
+						"type": "string",
+						"description": "Currency code.",
+						"example": "GBP",
+						"enum": [
+							"EUR",
+							"GBP",
+							"INR",
+							"USD"
+						]
+					}
+				}
+			},
+			"CreateCurrencyResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreateCurrencyResponseBodyData"
+					}
+				}
+			},
+			"CreateCurrencyResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreateNewEnvironmentResponseBody": {
+				"required": [
+					"data"
+				],
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreateNewEnvironmentResponseData"
+					}
+				}
+			},
+			"CreateNewEnvironmentResponseData": {
+				"required": [
+					"id"
+				],
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreatePaymentConsentResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreatePaymentConsentResponseBodyData"
+					}
+				}
+			},
+			"CreatePaymentConsentResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreatePaymentInterfaceProviderRequestBody": {
+				"type": "object",
+				"properties": {
+					"pipName": {
+						"type": "string"
+					}
+				}
+			},
+			"CreatePaymentInterfaceProviderResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CreatePaymentInterfaceProviderResponseBodyData"
+					}
+				}
+			},
+			"CreatePaymentInterfaceProviderResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"Currency": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"enum": [
+							"EUR",
+							"GBP",
+							"INR",
+							"USD"
+						]
+					},
+					"numDecimalDigits": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"CurrencyChild": {
+				"type": "object",
+				"properties": {
+					"currencyId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					},
+					"currency": {
+						"$ref": "#/components/schemas/Currency"
+					}
+				}
+			},
+			"CurrencyView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					},
+					"currencyDetails": {
+						"$ref": "#/components/schemas/Currency"
+					},
+					"cbdcAccounts": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CBDCAccountChild"
+						}
+					},
+					"commercialBanks": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CommercialBankChild"
+						}
+					},
+					"pips": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PIPChild"
+						}
+					}
+				}
+			},
+			"DomesticPaymentView": {
+				"type": "object",
+				"properties": {
+					"paymentId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"paymentInitiationDetails": {
+						"$ref": "#/components/schemas/PaymentInitiationDetails"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"CREATED",
+							"SETTLEMENT_IN_PROGRESS",
+							"SETTLEMENT_IN_PROGRESS_SOURCE_ACCOUNT_DEBITED",
+							"COMPLETE",
+							"FAILED"
+						]
+					},
+					"failureReason": {
+						"type": "string"
+					}
+				}
+			},
+			"EnvironmentView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					},
+					"currencies": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CurrencyChild"
+						}
+					}
+				}
+			},
+			"ErrorResponseBody": {
+				"type": "object",
+				"properties": {
+					"statusCode": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"statusDescription": {
+						"type": "string"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"message": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				}
+			},
+			"GetAccountAccessConsentResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/AccountAccessConsentView"
+					}
+				}
+			},
+			"GetBankingEntityAccountResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/BankingEntityAccountView"
+					}
+				}
+			},
+			"GetBankingEntityAccountsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/BankingEntityAccountView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetCBDCAccountResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CBDCAccountView"
+					}
+				}
+			},
+			"GetCommercialBankDetailsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CommercialBankView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetCommercialBankDetailsResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CommercialBankView"
+					}
+				}
+			},
+			"GetCurrencyDetailsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CurrencyView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetCurrencyDetailsResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/CurrencyView"
+					}
+				}
+			},
+			"GetDomesticPaymentDetailsResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/DomesticPaymentView"
+					}
+				}
+			},
+			"GetEnvironmentDetailsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/EnvironmentView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetEnvironmentDetailsResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/EnvironmentView"
+					}
+				}
+			},
+			"GetPIPDetailsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PIPView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetPIPDetailsResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/PIPView"
+					}
+				}
+			},
+			"GetPartyResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/PartyView"
+					}
+				}
+			},
+			"GetPartyViewsPageResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PartyView"
+						}
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"totalPages": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalElements": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"pageSize": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageIndex": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"pageNumberOfElements": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"GetPaymentConsentResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/PaymentConsentView"
+					}
+				}
+			},
+			"MakeDepositRequestBody": {
+				"type": "object",
+				"properties": {
+					"depositAmountInCurrencyUnits": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"MakeDomesticPaymentRequestBody": {
+				"type": "object",
+				"properties": {
+					"sourceAccountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"destinationAccountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"paymentAmountInCurrencyUnits": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"MakeDomesticPaymentResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/MakeDomesticPaymentResponseData"
+					}
+				}
+			},
+			"MakeDomesticPaymentResponseData": {
+				"required": [
+					"id"
+				],
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"MakeWithdrawalRequestBody": {
+				"type": "object",
+				"properties": {
+					"withdrawalAmountInCurrencyUnits": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"NotFoundResponse": {
+				"type": "object",
+				"properties": {
+					"statusCode": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"OpenAccountRequestBody": {
+				"type": "object",
+				"properties": {
+					"partyId": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"OpenAccountResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/OpenAccountResponseBodyData"
+					}
+				}
+			},
+			"OpenAccountResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"OpenBankingAccountAccessConsentCreationRequestBody": {
+				"type": "object",
+				"properties": {
+					"requestingPartyId": {
+						"$ref": "#/components/schemas/RequestingPartyId"
+					},
+					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					},
+					"requestingBankingEntityRef": {
+						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+					}
+				}
+			},
+			"OpenBankingPaymentConsentCreationRequestBody": {
+				"type": "object",
+				"properties": {
+					"paymentDetails": {
+						"$ref": "#/components/schemas/PaymentInitiationDetails"
+					},
+					"consentRequestingPartyId": {
+						"$ref": "#/components/schemas/RequestingPartyId"
+					},
+					"consentRequestingBankingEntityRef": {
+						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+					},
+					"bankingEntityWhereConsentRequestingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					}
+				}
+			},
+			"OwnedAccount": {
+				"type": "object",
+				"properties": {
+					"accountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"accountStatus": {
+						"type": "string",
+						"enum": [
+							"OPEN",
+							"CLOSED"
+						]
+					}
+				}
+			},
+			"PIPChild": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					}
+				}
+			},
+			"PIPView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"TERMINATED"
+						]
+					},
+					"currency": {
+						"$ref": "#/components/schemas/Currency"
+					},
+					"pipName": {
+						"type": "string"
+					},
+					"parties": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RegisteredParty"
+						}
+					},
+					"accounts": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Account"
+						}
+					}
+				}
+			},
+			"PartyView": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"INACTIVE"
+						]
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"INDIVIDUAL",
+							"PUBLIC_LIMITED_COMPANY",
+							"PRIVATE_LIMITED_COMPANY"
+						]
+					},
+					"fullLegalName": {
+						"type": "string"
+					},
+					"postalAddress": {
+						"type": "string"
+					},
+					"accountsOwned": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/OwnedAccount"
+						}
+					}
+				}
+			},
+			"PaymentConsentView": {
+				"type": "object",
+				"properties": {
+					"paymentConsentId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"AWAITING_AUTHORISATION",
+							"REJECTED",
+							"AUTHORISED",
+							"CONSUMED"
+						]
+					},
+					"consentRequestingPartyId": {
+						"$ref": "#/components/schemas/RequestingPartyId"
+					},
+					"consentRequestingBankingEntityRef": {
+						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+					},
+					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					},
+					"paymentDetails": {
+						"$ref": "#/components/schemas/PaymentInitiationDetails"
+					}
+				}
+			},
+			"PaymentInitiationDetails": {
+				"type": "object",
+				"properties": {
+					"sourceAccountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"destinationAccountId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"paymentAmount": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"PingResponse": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"RegisterPartyRequestBody": {
+				"type": "object",
+				"properties": {
+					"partyType": {
+						"type": "string",
+						"enum": [
+							"INDIVIDUAL",
+							"PUBLIC_LIMITED_COMPANY",
+							"PRIVATE_LIMITED_COMPANY"
+						]
+					},
+					"partyFullLegalName": {
+						"maxLength": 100,
+						"minLength": 5,
+						"type": "string"
+					},
+					"partyPostalAddress": {
+						"maxLength": 100,
+						"minLength": 5,
+						"type": "string"
+					}
+				}
+			},
+			"RegisterPartyResponseBody": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/RegisterPartyResponseBodyData"
+					}
+				}
+			},
+			"RegisterPartyResponseBodyData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"RegisteredParty": {
+				"type": "object",
+				"properties": {
+					"partyId": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"ACTIVE",
+							"INACTIVE"
+						]
+					}
+				}
+			},
+			"RequestingBankingEntityRef": {
+				"type": "object",
+				"properties": {
+					"bankingEntityType": {
+						"type": "string",
+						"enum": [
+							"PAYMENT_INTERFACE_PROVIDER",
+							"COMMERCIAL_BANK"
+						]
+					},
+					"bankingEntityId": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"RequestingPartyId": {
+				"type": "object",
+				"properties": {
+					"partyId": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			}
+		},
+		"securitySchemes": {
+			"x-api-key": {
+				"type": "apiKey",
+				"name": "x-api-key",
+				"in": "header"
+			}
+		}
+	}
+}

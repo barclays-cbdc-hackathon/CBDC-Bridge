@@ -1,0 +1,81 @@
+apply plugin: 'net.corda.plugins.cordapp'
+apply plugin: 'net.corda.plugins.quasar-utils'
+
+cordapp {
+    targetPlatformVersion cordaPlatformVersion.toInteger()
+    minimumPlatformVersion cordaPlatformVersion.toInteger()
+    workflow {
+        name "Barclays CBDC Hackathon 2022 Bridge"
+        vendor "Corda Open Source"
+        licence "Apache License, Version 2.0"
+        versionId 1
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir rootProject.file("config/dev")
+        }
+    }
+    test {
+        resources {
+            srcDir rootProject.file("config/test")
+        }
+    }
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/kotlin')
+        }
+    }
+}
+
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+
+    // Corda dependencies.
+    cordaCompile "$cordaCoreReleaseGroup:corda-core:$cordaCoreVersion"
+    cordaRuntime "$cordaReleaseGroup:corda:$cordaVersion"
+    testCompile "$cordaReleaseGroup:corda-node-driver:$cordaVersion"
+
+    compile "com.github.kittinunf.fuel:fuel:$fuelVersion"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion"
+}
+
+task integrationTest(type: Test, dependsOn: []) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+quasar {
+    excludePackages = [
+            'org.jetbrains.kotlin.com.intellij**',
+            'io.gitlab.arturbosch**'
+    ]
+}
+
+task detekt(type: JavaExec) {
+    main = "io.gitlab.arturbosch.detekt.cli.Main"
+    classpath = configurations.detekt
+    def input = "$projectDir"
+    def config = "${project.rootDir}/detekt-config.yml"
+    def baseline = "${project.rootDir}/detekt-baseline.xml"
+    def excludes = "**/test/**,.*/resources/.*"
+    def output = "$projectDir/build/reports/detekt/detekt.html"
+    def outputXml = "$projectDir/build/reports/detekt/detekt.xml"
+    def outputSarif = "$projectDir/build/reports/detekt/detekt.sarif"
+    def params = ['-i', input, '-c', config, '-b', baseline,'-ex', excludes, '-r', "html:$output", "-r", "xml:$outputXml",'-r',"sarif:$outputSarif"]
+    args(params)
+}
+
+test {
+    useJUnitPlatform()
+}
