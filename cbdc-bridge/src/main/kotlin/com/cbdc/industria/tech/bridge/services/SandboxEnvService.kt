@@ -3,8 +3,6 @@ package com.cbdc.industria.tech.bridge.services
 import com.cbdc.industria.tech.bridge.data.CreateNewEnvironmentResponseBody
 import com.cbdc.industria.tech.bridge.data.GetEnvironmentDetailsPageResponseBody
 import com.cbdc.industria.tech.bridge.data.GetEnvironmentDetailsResponseBody
-import com.cbdc.industria.tech.bridge.data.Page
-import com.cbdc.industria.tech.bridge.views.EnvironmentView
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

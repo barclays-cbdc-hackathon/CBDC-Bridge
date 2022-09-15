@@ -1,6 +1,5 @@
 package com.cbdc.industria.tech.bridge
 
-import com.cbdc.industria.tech.bridge.enums.CurrencyCode
 import com.cbdc.industria.tech.bridge.services.HOST_URL
 import com.cbdc.industria.tech.bridge.services.SandboxEnvService
 import com.cbdc.industria.tech.bridge.services.THREADS_COUNT
