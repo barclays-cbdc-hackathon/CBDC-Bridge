@@ -1,6 +1,5 @@
 package com.cbdc.industria.tech.bridge
 
-import com.cbdc.industria.tech.bridge.data.OpenBankingAccountAccessConsentCreationRequestBody
 import com.cbdc.industria.tech.bridge.enums.CurrencyCode
 import com.cbdc.industria.tech.bridge.services.CurrencyService
 import com.cbdc.industria.tech.bridge.services.HOST_URL
@@ -40,8 +39,8 @@ class OpenBankingAccountInformationServiceTest {
 
     @AfterEach
     fun tearDown() {
-        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId)
-        sandboxEnvService.deleteEnv(environmentId)
+        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId).getOrThrow()
+        sandboxEnvService.deleteEnv(environmentId).getOrThrow()
     }
 
 

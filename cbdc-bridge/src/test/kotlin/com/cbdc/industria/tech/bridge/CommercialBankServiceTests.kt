@@ -51,9 +51,9 @@ class CommercialBankServiceTests {
 
     @AfterEach
     fun tearDown() {
-        commercialBankService.deleteCommercialBank(xEnvId = environmentId, xCurrencyId = currencyId, bankId = commercialBankId)
-        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId)
-        sandboxEnvService.deleteEnv(environmentId)
+        commercialBankService.deleteCommercialBank(xEnvId = environmentId, xCurrencyId = currencyId, bankId = commercialBankId).getOrThrow()
+        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId).getOrThrow()
+        sandboxEnvService.deleteEnv(environmentId).getOrThrow()
     }
 
     @Test
@@ -263,7 +263,7 @@ class CommercialBankServiceTests {
             bankId = commercialBankId,
             accountId = accountId,
             body = MakeDepositRequestBody(100)
-        )
+        ).getOrThrow()
 
         assertThat(
             commercialBankService.getAccount(
@@ -281,7 +281,7 @@ class CommercialBankServiceTests {
             bankId = commercialBankId,
             accountId = accountId,
             body = MakeWithdrawalRequestBody(100)
-        )
+        ).getOrThrow()
 
         assertThat(
             commercialBankService.getAccount(
