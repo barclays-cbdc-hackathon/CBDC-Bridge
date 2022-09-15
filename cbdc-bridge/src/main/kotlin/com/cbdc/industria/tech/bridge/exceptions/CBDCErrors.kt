@@ -13,7 +13,7 @@ data class CBDCBridgeInternalServerError(
 ) : Exception()
 
 @CordaSerializable
-data class CBDCBridgeBadRequest(
+data class CBDCBridgeException(
     val statusCode: Int,
     val name: String,
     override val message: String

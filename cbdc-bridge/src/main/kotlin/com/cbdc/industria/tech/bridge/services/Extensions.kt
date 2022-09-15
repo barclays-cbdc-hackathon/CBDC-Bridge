@@ -1,6 +1,6 @@
 package com.cbdc.industria.tech.bridge.services
 
-import com.cbdc.industria.tech.bridge.exceptions.CBDCBridgeBadRequest
+import com.cbdc.industria.tech.bridge.exceptions.CBDCBridgeException
 import com.cbdc.industria.tech.bridge.exceptions.CBDCBridgeInternalServerError
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -80,7 +80,7 @@ inline fun <reified T : Any> Result<T, FuelError>.toCompletableFuture(future: Co
                 )
             else
                 future.completeExceptionally(
-                    CBDCBridgeBadRequest(
+                    CBDCBridgeException(
                         statusCode = err.response.statusCode,
                         message = String(err.response.data),
                         name = err.exception::class.java.name
