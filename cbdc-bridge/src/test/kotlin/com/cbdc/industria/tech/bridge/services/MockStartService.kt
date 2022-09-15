@@ -4,11 +4,11 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-class MockStartService: Start {
+class MockStartService {
 
     private val executor = Executors.newFixedThreadPool(THREADS_COUNT)
 
-    override fun getPublicPing(): Future<String> {
+    fun getPublicPing(): Future<String> {
         val future = CompletableFuture<String>()
 
         executor.execute {
@@ -19,7 +19,7 @@ class MockStartService: Start {
         return future
     }
 
-    override fun getAuthPing(authToken: String): Future<String> {
+    fun getAuthPing(authToken: String): Future<String> {
         val future = CompletableFuture<String>()
 
         executor.execute {
