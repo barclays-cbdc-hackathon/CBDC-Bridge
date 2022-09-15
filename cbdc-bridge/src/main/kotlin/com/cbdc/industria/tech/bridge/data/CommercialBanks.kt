@@ -51,3 +51,27 @@ data class GetPartyViewsPageResponseBody(
     val pageIndex: Int,
     val pageNumberOfElements: Int
 )
+
+@CordaSerializable
+data class GetCommercialBankDetailsPageResponseBody(
+    val data: List<CommercialBankView>,
+    val first: Boolean,
+    val last: Boolean,
+    val totalPages: Int,
+    val totalElements: Int,
+    val pageSize: Int,
+    val pageIndex: Int,
+    val pageNumberOfElements: Int
+)
+
+@CordaSerializable
+data class GetBankingEntityAccountsPageResponseBody(
+    val data: List<BankingEntityAccountView>,
+    val first: Boolean,
+    val last: Boolean,
+    val totalPages: Int,
+    val totalElements: Int,
+    val pageSize: Int,
+    val pageIndex: Int,
+    val pageNumberOfElements: Int
+)

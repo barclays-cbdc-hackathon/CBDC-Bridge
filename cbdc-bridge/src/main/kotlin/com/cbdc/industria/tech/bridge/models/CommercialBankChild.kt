@@ -4,4 +4,5 @@ import com.cbdc.industria.tech.bridge.enums.CurrencyStatus
 import net.corda.core.serialization.CordaSerializable
 
 @CordaSerializable
-data class CommercialBankChild(val id: Int, val name: String, val status: CurrencyStatus)
+data class CommercialBankChild(val id: Long, val name: String, val status: CurrencyStatus)
+

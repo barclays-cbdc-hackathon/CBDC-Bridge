@@ -4,8 +4,6 @@ import com.cbdc.industria.tech.bridge.data.CreateCurrencyRequestBody
 import com.cbdc.industria.tech.bridge.data.CreateCurrencyResponseBody
 import com.cbdc.industria.tech.bridge.data.GetCurrencyDetailsPageResponseBody
 import com.cbdc.industria.tech.bridge.data.GetCurrencyDetailsResponseBody
-import com.cbdc.industria.tech.bridge.data.Page
-import com.cbdc.industria.tech.bridge.views.CurrencyView
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService

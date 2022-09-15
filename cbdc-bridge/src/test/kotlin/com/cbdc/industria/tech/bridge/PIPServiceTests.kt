@@ -8,6 +8,7 @@ import com.cbdc.industria.tech.bridge.data.OpenAccountRequestBody
 import com.cbdc.industria.tech.bridge.data.RegisterPartyRequestBody
 import com.cbdc.industria.tech.bridge.enums.CurrencyCode
 import com.cbdc.industria.tech.bridge.enums.PartyType
+import com.cbdc.industria.tech.bridge.services.CBDCLedgerService
 import com.cbdc.industria.tech.bridge.services.CommercialBankService
 import com.cbdc.industria.tech.bridge.services.CurrencyService
 import com.cbdc.industria.tech.bridge.services.HOST_URL
@@ -30,7 +31,7 @@ class PIPServiceTests {
         executor = Executors.newFixedThreadPool(THREADS_COUNT),
         host = HOST_URL
     )
-    private val mockCurrencyService = CurrencyService(
+    private val currencyService = CurrencyService(
         executor = Executors.newFixedThreadPool(THREADS_COUNT),
         host = HOST_URL
     )
@@ -51,12 +52,12 @@ class PIPServiceTests {
     fun createEnvAndCurrency() {
         envId = sandboxEnvService.postEnv().getOrThrow().data.id
         currencyId =
-            mockCurrencyService.postCurrency(envId, CreateCurrencyRequestBody(CurrencyCode.EUR)).getOrThrow().data.id
+            currencyService.postCurrency(envId, CreateCurrencyRequestBody(CurrencyCode.EUR)).getOrThrow().data.id
     }
 
     @AfterAll
     fun deleteEnvAndCurrency() {
-        mockCurrencyService.deleteCurrency(envId, currencyId).getOrThrow()
+        currencyService.deleteCurrency(envId, currencyId).getOrThrow()
         sandboxEnvService.deleteEnv(envId).getOrThrow()
     }
 
@@ -155,42 +156,85 @@ class PIPServiceTests {
         val filteredEnv = envs.data.filter { it.status != "TERMINATED" }
 
         filteredEnv.forEach { env ->
-            val currenciesForEnv = mockCurrencyService.getCurrencies(env.id)
+            val currenciesForEnv = currencyService.getCurrencies(env.id)
                 .getOrThrow().data.filter { currencyView ->
                     currencyView.status.toString() != "TERMINATED"
                         && env.currencies.map { it.currencyId }.contains(currencyView.id)
                 }
 
             currenciesForEnv.forEach { currencyForEnv ->
+                try {
+                    println(" env id:  ${env.id}  currency id: ${currencyForEnv.id}")
+                    val pips = pipService.getPIPs(env.id, currencyForEnv.id)
+                        .getOrThrow().data.filter { pip ->
+                            pip.status != "TERMINATED"
+                                && currenciesForEnv.flatMap { currencyView ->
+                                currencyView.pips.map { it.id }
+                            }.contains(pip.id)
+                        }
 
-                val pips = pipService.getPIPs(env.id, currencyForEnv.id)
-                    .getOrThrow().data.filter { pip ->
-                        pip.status != "TERMINATED"
-                            && currenciesForEnv.flatMap { currencyView ->
-                            currencyView.pips.map { it.id }
-                        }.contains(pip.id)
+                    val comBanks = commercialBankService.getCommercialBanks(env.id, currencyForEnv.id)
+                        .getOrThrow().data.filter { comBank ->
+                            comBank.status.toString() != "TERMINATED" && currencyForEnv.commercialBanks.map { it.id }
+                                .contains(comBank.id)
+                        }
+
+                    comBanks.forEach { comBank ->
+                        val comAccounts =
+                            commercialBankService.getAccounts(env.id, currencyForEnv.id, comBank.id).getOrThrow()
+                                .data.filter { account ->
+                                    account.status.toString() == "OPEN"
+                                        && comBank.accounts.map { it.accountId }.contains(account.id)
+                                }
+
+                        val comParties =
+                            commercialBankService.getParties(env.id, currencyForEnv.id, comBank.id).getOrThrow()
+                                .data.filter { account ->
+                                    account.status.toString() == "ACTIVE"
+                                        && comBank.parties.map { it.partyId }.contains(account.id)
+                                }
+
+                        comAccounts.forEach {
+                            commercialBankService.deleteAccount(
+                                env.id,
+                                currencyForEnv.id,
+                                comBank.id,
+                                it.id
+                            )
+                        }
+                        comParties.forEach {
+                            commercialBankService.deleteParty(
+                                env.id,
+                                currencyForEnv.id,
+                                comBank.id,
+                                it.id
+                            )
+                        }
+                        commercialBankService.deleteCommercialBank(env.id, currencyForEnv.id, comBank.id)
                     }
 
-                pips.forEach { pipView ->
-                    pipView.accounts.forEach { account ->
-                        if (account.status.toString() == "OPEN")
-                            pipService.deletePIPAccount(env.id, currencyForEnv.id, pipView.id, account.accountId)
-                                .getOrThrow()
-                    }
-                    pipView.parties.forEach { party ->
-                        if (party.status.toString() == "ACTIVE")
-                            pipService.deletePIPParty(env.id, currencyForEnv.id, pipView.id, party.partyId).getOrThrow()
+                    pips.forEach { pipView ->
+                        pipView.accounts.forEach { account ->
+                            if (account.status.toString() == "OPEN")
+                                pipService.deletePIPAccount(env.id, currencyForEnv.id, pipView.id, account.accountId)
+                                    .getOrThrow()
+                        }
+                        pipView.parties.forEach { party ->
+                            if (party.status.toString() == "ACTIVE")
+                                pipService.deletePIPParty(env.id, currencyForEnv.id, pipView.id, party.partyId)
+                                    .getOrThrow()
+                        }
+
+                        pipService.deletePIP(env.id, currencyForEnv.id, pipView.id).getOrThrow()
                     }
 
-                    pipService.deletePIP(env.id, currencyForEnv.id, pipView.id).getOrThrow()
+                    currencyService.deleteCurrency(env.id, currencyForEnv.id).getOrThrow()
+                    sandboxEnvService.deleteEnv(env.id).getOrThrow()
+                } catch (e: Exception) {
+                    println(e.message)
                 }
             }
-
-            env.currencies.forEach { mockCurrencyService.deleteCurrency(env.id, it.currencyId).getOrThrow() }
-            sandboxEnvService.deleteEnv(env.id).getOrThrow()
         }
-        val envs2 = sandboxEnvService.getEnvs().getOrThrow().data.filter { it.status != "TERMINATED" }
-        assertThat(envs2.size).isEqualTo(0)
     }
 
 //    @Test

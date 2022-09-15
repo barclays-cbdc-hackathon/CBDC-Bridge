@@ -3,6 +3,7 @@ package com.cbdc.industria.tech.bridge.services
 import com.cbdc.industria.tech.bridge.data.CreatePaymentInterfaceProviderRequestBody
 import com.cbdc.industria.tech.bridge.data.CreatePaymentInterfaceProviderResponseBody
 import com.cbdc.industria.tech.bridge.data.GetBankingEntityAccountResponseBody
+import com.cbdc.industria.tech.bridge.data.GetBankingEntityAccountsPageResponseBody
 import com.cbdc.industria.tech.bridge.data.GetPIPDetailsPageResponseBody
 import com.cbdc.industria.tech.bridge.data.GetPIPDetailsResponseBody
 import com.cbdc.industria.tech.bridge.data.GetPartyResponseBody

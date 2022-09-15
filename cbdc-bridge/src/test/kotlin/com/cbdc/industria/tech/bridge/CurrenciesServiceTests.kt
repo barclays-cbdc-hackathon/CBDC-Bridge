@@ -34,8 +34,8 @@ class CurrenciesServiceTests {
 
     @AfterEach
     fun tearDown() {
-        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId)
-        sandboxEnvService.deleteEnv(environmentId)
+        currenciesService.deleteCurrency(xEnvId = environmentId, currencyId = currencyId).getOrThrow()
+        sandboxEnvService.deleteEnv(environmentId).getOrThrow()
     }
 
     @Test
