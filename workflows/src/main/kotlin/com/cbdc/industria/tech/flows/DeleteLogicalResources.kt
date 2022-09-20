@@ -1,5 +1,6 @@
 package com.cbdc.industria.tech.flows
 
+import co.paralleluniverse.fibers.Suspendable
 import com.cbdc.industria.tech.bridge.services.CommercialBankCordaService
 import com.cbdc.industria.tech.bridge.services.CurrencyCordaService
 import com.cbdc.industria.tech.bridge.services.PIPCordaService
@@ -17,6 +18,7 @@ import net.corda.core.utilities.getOrThrow
  */
 class DeleteLogicalResources(private val logicalResources: LogicalResources) : FlowLogic<Unit>() {
 
+    @Suspendable
     override fun call() {
         val envId = logicalResources.envId
         val currencyId = logicalResources.currencyId

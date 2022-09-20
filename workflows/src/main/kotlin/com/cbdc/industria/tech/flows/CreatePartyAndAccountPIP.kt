@@ -1,11 +1,13 @@
 package com.cbdc.industria.tech.flows
 
+import co.paralleluniverse.fibers.Suspendable
 import com.cbdc.industria.tech.bridge.data.OpenAccountRequestBody
 import com.cbdc.industria.tech.bridge.data.RegisterPartyRequestBody
 import com.cbdc.industria.tech.bridge.enums.PartyType
 import com.cbdc.industria.tech.bridge.services.PIPCordaService
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
+import net.corda.core.serialization.CordaSerializable
 import net.corda.core.utilities.getOrThrow
 
 @StartableByRPC
@@ -18,6 +20,7 @@ class CreatePartyAndAccountPIP(
     private val partyType: PartyType
 ) : FlowLogic<PartyAndAccountIds>() {
 
+    @Suspendable
     override fun call(): PartyAndAccountIds {
         val pipService = serviceHub.cordaService(PIPCordaService::class.java)
         val partyId = pipService.registerPartyWithPIP(
@@ -42,4 +45,5 @@ class CreatePartyAndAccountPIP(
     }
 }
 
+@CordaSerializable
 data class PartyAndAccountIds(val partyId: Long, val accountId: Long)

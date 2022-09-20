@@ -1,5 +1,6 @@
 package com.cbdc.industria.tech.flows
 
+import co.paralleluniverse.fibers.Suspendable
 import com.cbdc.industria.tech.bridge.data.OpenAccountRequestBody
 import com.cbdc.industria.tech.bridge.data.RegisterPartyRequestBody
 import com.cbdc.industria.tech.bridge.enums.PartyType
@@ -17,6 +18,8 @@ class CreatePartyAndAccountBank(
     private val partyPostalAddress: String,
     private val partyType: PartyType
 ) : FlowLogic<PartyAndAccountIds>() {
+
+    @Suspendable
     override fun call(): PartyAndAccountIds {
         val commercialBank = serviceHub.cordaService(CommercialBankCordaService::class.java)
         val partyId = commercialBank.registerPartyWithBank(

@@ -1,5 +1,6 @@
 package com.cbdc.industria.tech.flows
 
+import co.paralleluniverse.fibers.Suspendable
 import com.cbdc.industria.tech.bridge.data.CreateCommercialBankRequestBody
 import com.cbdc.industria.tech.bridge.data.CreateCurrencyRequestBody
 import com.cbdc.industria.tech.bridge.data.CreatePaymentInterfaceProviderRequestBody
@@ -10,6 +11,7 @@ import com.cbdc.industria.tech.bridge.services.PIPCordaService
 import com.cbdc.industria.tech.bridge.services.SandboxEnvCordaService
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
+import net.corda.core.serialization.CordaSerializable
 import net.corda.core.utilities.getOrThrow
 
 @StartableByRPC
@@ -24,6 +26,7 @@ class CreateLogicalResources(
     private val pipName: String
 ) : FlowLogic<LogicalResources>() {
 
+    @Suspendable
     override fun call(): LogicalResources {
         val envId = serviceHub.cordaService(SandboxEnvCordaService::class.java).postEnv().getOrThrow().data.id
 
@@ -54,6 +57,7 @@ class CreateLogicalResources(
     }
 }
 
+@CordaSerializable
 data class LogicalResources(
     val envId: Long,
     val currencyId: Long,

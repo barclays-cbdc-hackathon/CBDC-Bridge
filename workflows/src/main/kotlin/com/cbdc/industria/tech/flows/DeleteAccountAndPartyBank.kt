@@ -1,5 +1,6 @@
 package com.cbdc.industria.tech.flows
 
+import co.paralleluniverse.fibers.Suspendable
 import com.cbdc.industria.tech.bridge.services.CommercialBankCordaService
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
@@ -13,6 +14,7 @@ class DeleteAccountAndPartyBank(
     private val bankId: Long
 ) : FlowLogic<Unit>() {
 
+    @Suspendable
     override fun call() {
         val pipService = serviceHub.cordaService(CommercialBankCordaService::class.java)
         pipService.deleteAccount(envId, currencyId, bankId, accountAndPartyIds.accountId).getOrThrow()
