@@ -9,7 +9,18 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
+import java.util.concurrent.ForkJoinPool
+import net.corda.core.node.AppServiceHub
+import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
+
+
+
+@CordaService
+class CordaPISPService(serviceHub: AppServiceHub) : PISPService(
+    executor = ForkJoinPool.commonPool(),
+    host = HOST_URL
+)
 
 open class PISPService(
     private val executor: ExecutorService,
