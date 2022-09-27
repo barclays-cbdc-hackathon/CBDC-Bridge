@@ -1,6 +1,7 @@
 package com.cbdc.industria.tech.webserver.rpc
 
 import com.cbdc.industria.tech.flows.CheckPings
+import net.corda.core.messaging.startFlow
 import net.corda.core.utilities.getOrThrow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +21,7 @@ class Controller {
     @GetMapping("/ping")
     fun ping() : List<String>{
         return try {
-            node.proxy.startFlowDynamic(CheckPings::class.java).returnValue.getOrThrow()
+            node.proxy.startFlow(::CheckPings).returnValue.getOrThrow()
 //            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTx.id} committed to ledger.\n")
 
         } catch (ex: Throwable) {
