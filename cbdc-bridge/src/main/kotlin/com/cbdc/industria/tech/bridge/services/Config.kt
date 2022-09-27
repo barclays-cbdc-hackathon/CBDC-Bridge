@@ -1,5 +1,10 @@
 package com.cbdc.industria.tech.bridge.services
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+private val logger: Logger = LoggerFactory.getLogger("com.cbdc.industria.tech.bridge.services")
+
 const val TIMEOUT_MILLISECONDS = 60_000
 const val AUTH_HEADER_KEY = "X-API-Key"
 const val THREADS_COUNT = 5
@@ -14,8 +19,12 @@ const val PAGE_INDEX_KEY = "pageIndex"
 const val PAGE_SIZE_KEY = "pageSize"
 const val MAX_PAGE_SIZE = 1000
 
-val AUTH_TOKEN: String = System.getenv("BARCLAYS_AUTH_TOKEN")
 const val HOST_URL = "https://cbdchackathon-dev.barclays.nayaone.com"
+val AUTH_TOKEN: String = System.getenv("BARCLAYS_AUTH_TOKEN")
+    .also { token: String? ->
+        if (token.isNullOrBlank())
+            logger.warn("BARCLAYS_AUTH_TOKEN is not set! APIs will not work!")
+    } ?: ""
 
 // Currencies
 const val CURRENCIES = "currencies"
