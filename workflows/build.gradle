@@ -48,7 +48,10 @@ dependencies {
 
     // CorDapp dependencies.
     cordapp project(":contracts")
-    cordapp project(":cbdc-bridge")
+//    cordapp project(":cbdc-bridge")
+
+    compile "com.github.kittinunf.fuel:fuel:$fuelVersion"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion"
 }
 
 task integrationTest(type: Test, dependsOn: []) {
