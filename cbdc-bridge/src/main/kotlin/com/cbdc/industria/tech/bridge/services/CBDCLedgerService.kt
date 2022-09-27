@@ -126,30 +126,4 @@ open class CBDCLedgerService(
         return future
     }
 
-
-    fun deleteAccount(
-        xEnvId: Int,
-        xCurrencyId: Int,
-        xPipId: Int,
-        accountId: Int
-    ): Future<GetCBDCAccountResponseBody> {
-        val future = CompletableFuture<GetCBDCAccountResponseBody>()
-
-        executor.execute {
-            val result = makeDeleteRequest<GetCBDCAccountResponseBody>(
-                url = "$host/$CBDC_ACCOUNTS/$accountId",
-                headers = mapOf(
-                    AUTH_HEADER_KEY to AUTH_TOKEN,
-                    X_ENV_ID to xEnvId,
-                    X_CURRENCY_ID to xCurrencyId,
-                    X_PIP_ID to xPipId
-                )
-            )
-            result.toCompletableFuture(future)
-        }
-
-        return future
-    }
-
-
 }

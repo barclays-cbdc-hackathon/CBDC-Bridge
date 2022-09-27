@@ -2,13 +2,13 @@
 	"openapi": "3.0.1",
 	"info": {
 		"title": "Barclays 2022 CBDC Hackathon API",
-		"description": "API for the Barclays 2022 CBDC Hackathon.\n\nCBDC: 'A digital payment instrument, denominated in the national unit of account, that is a direct liability of the central bank' - Bank for International Settlements (BIS).\n",
-		"version": "0.0.1"
+		"description": "API for the Barclays 2022 CBDC Hackathon.\n\nPlease ensure you include your API key in the `x-api-key` header for your requests.\n",
+		"version": "0.0.9"
 	},
 	"servers": [
 		{
 			"url": "https://cbdchackathon-dev.barclays.nayaone.com/",
-			"description": "hello"
+			"description": "Server"
 		}
 	],
 	"security": [
@@ -35,23 +35,23 @@
 		},
 		{
 			"name": "Commercial Banks",
-			"description": "Manage commercial banks for your currency."
+			"description": "APIs to manage commercial banks and their associated resources (parties, accounts) for your currency.\n\nEven after the introduction of a central bank digital currency, commercial banks will continue to exist\nand play the same role as they currently do within the financial services industry.\n\nYou can use these endpoints to augment your environment with:\n- Commercial bank entities.\n- Parties\n  - These are parties which are registered at a specific commercial bank entity.\n- Accounts\n  - These are bank accounts held at a commercial bank entity and owned by a registered party.\n\nCommercial banks and PIPs are collectively referred to as \"banking entities\".\n"
 		},
 		{
 			"name": "Payment Interface Providers (PIPs)",
-			"description": "Manage PIPs within your environment."
+			"description": "APIs to manage PIPs and their associated resources (parties, accounts) for your currency.\n\nPIPs are regulated financial institutions which have access to the core ledger of the central\nbank digital currency.\n\nYou can use these endpoints to augment your environment with:\n- PIP entities.\n- Parties\n  - These are parties which are registered at a specific PIP.\n  - Whereas the PIP will know the details about the party, the central bank which hosts\n    the core ledger, will not.\n- Accounts\n  - \"PIP accounts\" are proxy accounts for CBDC accounts held on the core ledger.\n\nCommercial banks and PIPs are collectively referred to as \"banking entities\".\n"
 		},
 		{
 			"name": "Ecosystem Service: Domestic Payment Processor",
-			"description": "A financial market infrastructure (FMI) entity which processes domestic payments."
+			"description": "APIs to make payments between two accounts and to view the latest state of a payment.\n\nThese APIs represent a financial market infrastructure (FMI) ecosystem service (similar to a faster payments\nservice) which entities within the ecosystem can leverage to make payments.\n\nThe source account and destination account identifiers must refer to either a commercial bank account\nor a PIP account within the same environment and currency.\n\nIt is assumed that the banking entity making the payment is the same as the entity which\nmanages the payment source account."
 		},
 		{
-			"name": "Open Banking: Account Information Service Provider (AISP)",
-			"description": "Interact with accounts owned by other banking entities."
+			"name": "OB: AISP",
+			"description": "<h2> Open Banking: Account Information Service Provider (AISP) </h2>\n\nAn AISP is a banking entity (commercial bank/PIP) which provides APIs that\nallow for the account data it holds to be accessed by other entities within\nthe industry (for example other banking entities or financial services companies).\nIn order for the other entities to access an account's data they must have \"consent\" from\nthe party whose actual account it is.\n\nThese APIs are commonly referred to \"Open Banking\" APIs as they allow for the opening\nof data which was previously privately held. The actual Open Banking AISP API allows you\nto view the account data at the level of a transaction as well as to view statements.\nThis slimmed down version only exposes APIs which allow you access to the\naccount details (balance, status, etc.) and details about the party which owns\nthe account (name, address).\n\nThere are a number of key actors which you should be aware of when interacting with these APIs:\n1. The \"consent requesting banking entity\"\n   - This is the banking entity (commercial bank/PIP) which is requesting consent from the party\n     to access the account data.\n2. The \"consent granting party\"\n   - This is party which owns the account whose data will be accessed.\n   - This party needs to grant its \"consent\" for the data to be shared.\n   - In the real world, the party may be using an app made by the consent requesting banking entity (1)\n     which requires access to the account data to work. Consent would be given by navigating to a separate\n     login page or providing a one-time password to the banking entity where the account is registered (3).\n       - For this simulation we have simplified this and if the consent API is hit it is assumed that consent\n         has been granted.\n3. The banking entity where the consent granting party is registered\n   - This is the entity which actually holds the account data and cannot share it unless\n     the party grants consent.\n"
 		},
 		{
-			"name": "Open Banking: Payment Initiation Service Provider (PISP)",
-			"description": "This API has not yet ben implemented. It will be available in a future release."
+			"name": "OB: PISP",
+			"description": "<h2> Open Banking: Payment Initiation Service Provider (PISP) </h2>\n\nA PISP is a banking entity (commercial bank/PIP) which provides APIs that allow for\na payment to be initiated (from an account that it holds) by other entities within\nthe industry (for example other banking entities or financial services companies).\nIn order for the other entities to initiate a payment they must have \"consent\" from\nthe party whose actual account it is.\n\nThere are a number of key actors which you should be aware of when interacting with these APIs:\n1. The \"consent requesting banking entity\"\n   - This is the banking entity (commercial bank/PIP) which is requesting consent from the party\n     to initiate the payment.\n2. The \"consent granting party\"\n   - This is party which owns the account from which the payment will be made.\n   - This party is who is granting its \"consent\" for the payment to be made.\n   - In the real world, the party may be using an app made by the consent requesting banking entity (1)\n     which requires the payment to be made. Consent would be given by navigating to a separate\n     login page or providing a one-time password to the banking entity where the party's account is registered (3).\n       - For this simulation we have simplified this and if the consent API is hit it is assumed that consent\n         has been granted.\n3. The banking entity where the consent granting party is registered\n   - This is the entity which actually holds the account from which the payment is to be made. It cannot initiate\n     the payment unless the party has granted consent.\n"
 		}
 	],
 	"paths": {
@@ -60,7 +60,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get a page listing the PIPs you have created.",
+				"description": "Get a page listing the PIPs you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-pip-details-page",
 				"parameters": [
 					{
@@ -159,8 +160,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": "Create a new Payment Interface Provider.",
-				"description": "Create a new PIP which will have access to the CBDC ledger for the given currency.",
+				"summary": "Create a new PIP.",
+				"description": "Create a new PIP which will have access to the CBDC ledger for the given currency.\nOnce created, you can register parties with the PIP and also open up accounts.\nAn account at a PIP is a proxy for an account on the CBDC ledger.",
 				"operationId": "create-new-pip",
 				"parameters": [
 					{
@@ -251,7 +252,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get details of all parties registered at the PIP.",
+				"description": "Get details of all parties registered at the PIP.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-pip-party-page-details",
 				"parameters": [
 					{
@@ -360,7 +362,7 @@
 					"Payment Interface Providers (PIPs)"
 				],
 				"summary": "Register a party with the PIP.",
-				"description": "Register a party with a PIP. Once registered you can then open accounts belonging to that party. In the real world the registration would also include performing KYC and AML checks.",
+				"description": "Register a party with the PIP.\n\nIt is the PIP which holds the personally identifiable data of the party and\nwhich interacts with the CBDC core ledger on behalf of the party.\n\n\nOnce registered you can then open accounts belonging to that party.\nIn the real world the registration would also include performing KYC and AML checks.",
 				"operationId": "create-new-pip-party",
 				"parameters": [
 					{
@@ -413,7 +415,7 @@
 				},
 				"responses": {
 					"201": {
-						"description": "Payment made.",
+						"description": "Party Registered.",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -460,7 +462,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get details of all of the accounts at the PIP.",
+				"description": "Get details of all of the accounts at the PIP.\n\n\n\n<h2> Balance details </h2>\n\nThe `balance` is given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor your convenience there is also a field, `formattedBalance` which displays the balance as a decimal number.\n\nFor example if you had £1.03 in the account you would receive a `balance` of 103 and a `formattedBalance` of £1.03.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-pip-account-page",
 				"parameters": [
 					{
@@ -523,7 +526,7 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Page containing account Details.",
+						"description": "Page containing account details.",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -568,8 +571,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": "Open a CBDC account at the payment interface provider.",
-				"description": "Opens a CBDC account in the given currency at the payment interface provider. This account is essentially a proxy for the CBDC account stored on the central bank's core ledger. You need to provide a reference to the ID of the party which is opening the account in the request body.",
+				"summary": "Open a CBDC account at the PIP.",
+				"description": "Opens a CBDC account in the given currency at the payment interface provider.\nThis account is essentially a proxy for the CBDC account stored on the central bank's core ledger.\nYou do not need to interact directly with the core ledger - the PIP will do that behind the scenes.\nYou need to provide a reference to the ID of the party which is opening the account in the request body.",
 				"operationId": "open-pip-account",
 				"parameters": [
 					{
@@ -669,8 +672,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Withdraw a cash amount from the account.",
+				"description": "Simulation of withdrawing money from the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "withdraw-from-pip-account",
 				"parameters": [
 					{
@@ -779,8 +782,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Deposit a cash amount into the account.",
+				"description": "Simulation of depositing cash into the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "deposit-into-pip-account",
 				"parameters": [
 					{
@@ -887,10 +890,10 @@
 		"/open-banking/pisp/domestic-payments": {
 			"post": {
 				"tags": [
-					"Open Banking: Payment Initiation Service Provider (PISP)"
+					"OB: PISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Make a payment.",
+				"description": "Make a payment for which consent has previously been given.",
 				"operationId": "ob-make-payment",
 				"parameters": [
 					{
@@ -924,7 +927,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -954,7 +957,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/MakeDomesticPaymentRequestBody"
+								"$ref": "#/components/schemas/PaymentInitiationDetails"
 							}
 						}
 					},
@@ -1007,10 +1010,10 @@
 		"/open-banking/pisp/domestic-payment-consents": {
 			"post": {
 				"tags": [
-					"Open Banking: Payment Initiation Service Provider (PISP)"
+					"OB: PISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Grant consent to a banking entity to initiate a payment.",
+				"description": "Simulates the action of a party granting consent for a payment to be made from their account.",
 				"operationId": "ob-create-payment-consent",
 				"parameters": [
 					{
@@ -1099,10 +1102,10 @@
 		"/open-banking/aisp/account-access-consents": {
 			"post": {
 				"tags": [
-					"Open Banking: Account Information Service Provider (AISP)"
+					"OB: AISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Grant consent to a banking entity to access account data.",
+				"description": "Simulates the action of a party granting consent to a banking entity to access its account data.\n\nSee the API documentation for a full description of the different actors involved with the\nopen banking APIs.",
 				"operationId": "ob-create-account-access-consent",
 				"parameters": [
 					{
@@ -1193,8 +1196,8 @@
 				"tags": [
 					"Sandbox Environment"
 				],
-				"summary": "Retrieve a page listing the environments you have created.",
-				"description": "Retrieve a page listing the environments you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n\nYou cannot request a `pageSize` greater than  1000.",
+				"summary": "Get a page listing the environments you have created.",
+				"description": "Get a page listing the environments you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-envs",
 				"parameters": [
 					{
@@ -1317,8 +1320,8 @@
 				"tags": [
 					"Ecosystem Service: Domestic Payment Processor"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Make a payment between two accounts.",
+				"description": "Make a payment between two accounts.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "domestic-payment-ecosystem-service-make-payment",
 				"parameters": [
 					{
@@ -1354,7 +1357,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/MakeDomesticPaymentRequestBody"
+								"$ref": "#/components/schemas/PaymentInitiationDetails"
 							}
 						}
 					},
@@ -1409,8 +1412,8 @@
 				"tags": [
 					"Currency"
 				],
-				"summary": "Retrieve a page listing the currencies you have created.",
-				"description": "Retrieve a page listing the currencies you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n\nYou cannot request a `pageSize` greater than  1000.",
+				"summary": "Get a page listing the currencies you have created.",
+				"description": "Get a page listing the currencies you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-currencies-page",
 				"parameters": [
 					{
@@ -1573,7 +1576,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get a page listing the commercial banks you have created.",
+				"description": "Get a page listing the commercial banks you have created.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-commercial-bank-details-page",
 				"parameters": [
 					{
@@ -1673,7 +1677,7 @@
 					"Commercial Banks"
 				],
 				"summary": "Create a new commercial bank entity.",
-				"description": "Create a new commercial bank which will manage its own ledger in the given currency.",
+				"description": "Create a new commercial bank which will manage its own ledger of accounts in the given currency.\nOnce created, you can register parties with the commercial bank and also open up accounts owned by a registered party.",
 				"operationId": "create-new-commercial-bank",
 				"parameters": [
 					{
@@ -1764,7 +1768,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get details of all parties registered at the commercial bank.",
+				"description": "Get details of all parties registered at the commercial bank.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-commercial-bank-party-page-details",
 				"parameters": [
 					{
@@ -1873,7 +1878,7 @@
 					"Commercial Banks"
 				],
 				"summary": "Register a party with the commercial bank.",
-				"description": "Register a party with the commercial bank. Once registered you can then open accounts belonging to that party. In the real world the registration would also include performing KYC and AML checks.",
+				"description": "Register a party with the commercial bank.\n\nOnce registered you can then open accounts belonging to that party.\nIn the real world the registration would also include performing KYC and AML checks.",
 				"operationId": "register-commercial-bank-party",
 				"parameters": [
 					{
@@ -1973,7 +1978,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get details of all of the accounts at the specific commercial bank.",
+				"description": "Get details of all of the accounts at the specific commercial bank.\n\n\n\n<h2> Balance details </h2>\n\nThe `balance` is given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor your convenience there is also a field, `formattedBalance` which displays the balance as a decimal number.\n\nFor example if you had £1.03 in the account you would receive a `balance` of 103 and a `formattedBalance` of £1.03.\n\n<h2> Paging </h2>\n\nThis endpoint can potentially return quite a large result and so you must use paging to control the size of the response.\n\nPagination is handled by using the `pageIndex` and `pageSize` parameters.\n\n- The `pageIndex` refers to the index of the page of data you want returned. It is 0-indexed meaning the first page will always have the `pageIndex` value of 0.\n\n- The `pageSize` refers to the maximum number of entries you would like to see within a single page (hence page size).\n   - You cannot request a `pageSize` greater than  1000.",
 				"operationId": "get-commercial-bank-accounts-page",
 				"parameters": [
 					{
@@ -2182,8 +2188,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Withdraw a cash amount from the account.",
+				"description": "Simulation of withdrawing money from the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "withdraw-from-commercial-bank-account",
 				"parameters": [
 					{
@@ -2292,8 +2298,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": "Deposit.",
-				"description": ".",
+				"summary": "Deposit a cash amount into the account.",
+				"description": "Simulation of depositing cash into the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "deposit-into-commercial-bank-account",
 				"parameters": [
 					{
@@ -2403,7 +2409,7 @@
 					"CBDC Ledger"
 				],
 				"summary": "Open a CBDC account on the central bank's core ledger.",
-				"description": "Open a CBDC account on the core ledger of the central bank. This API endpoint is intended to be used by PIPs.",
+				"description": "Open a CBDC account on the core ledger of the central bank.\n\nThis API endpoint is intended to be used by PIPs.",
 				"operationId": "open-cbdc-account",
 				"parameters": [
 					{
@@ -2498,8 +2504,8 @@
 				"tags": [
 					"CBDC Ledger"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Withdraw a cash amount from the account.",
+				"description": "Simulation of withdrawing money from the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "withdraw-from-cbdc-account",
 				"parameters": [
 					{
@@ -2613,8 +2619,8 @@
 				"tags": [
 					"CBDC Ledger"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Deposit a cash amount into the account.",
+				"description": "Simulation of depositing cash into the account.\n\n<h2> Amount details </h2>\n\nThe amount must be given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor example if you wanted £1/$1/€1 to be the amount you would give the value 100 (as the value refers to the\namount of pence/cents).",
 				"operationId": "deposit-into-cbdc-account",
 				"parameters": [
 					{
@@ -2773,7 +2779,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get PIP details.",
+				"description": "Retrieve the details of a specific PIP.",
 				"operationId": "get-pip-details",
 				"parameters": [
 					{
@@ -2861,7 +2868,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Terminate a PIP.",
+				"description": "Terminate a PIP entity. Note: all child resources (parties/accounts) must be terminated as well otherwise this API call will fail.",
 				"operationId": "terminate-pip",
 				"parameters": [
 					{
@@ -2951,7 +2959,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get details about a specific party registered at a PIP.",
+				"description": "Returns the details about the specific party registered at the PIP.",
 				"operationId": "get-pip-party",
 				"parameters": [
 					{
@@ -3048,7 +3057,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "De-register a specific party from a PIP.",
+				"description": "De-register a specific party from a PIP.",
 				"operationId": "deregister-pip-party",
 				"parameters": [
 					{
@@ -3147,7 +3157,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Get details of a specific account at the PIP.",
+				"description": "Get details of a specific account at the PIP.",
 				"operationId": "get-pip-account",
 				"parameters": [
 					{
@@ -3244,7 +3255,8 @@
 				"tags": [
 					"Payment Interface Providers (PIPs)"
 				],
-				"summary": ".",
+				"summary": "Close the account at the PIP.",
+				"description": "Close the account. Note: the account must have a 0 balance for this API call to succeed.",
 				"operationId": "close-pip-account",
 				"parameters": [
 					{
@@ -3341,10 +3353,10 @@
 		"/open-banking/pisp/domestic-payments/{domestic_payment_id}": {
 			"get": {
 				"tags": [
-					"Open Banking: Payment Initiation Service Provider (PISP)"
+					"OB: PISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get payment details .",
+				"description": "Retrieve the latest status of a payment.",
 				"operationId": "ob-get-payment",
 				"parameters": [
 					{
@@ -3378,7 +3390,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -3460,10 +3472,10 @@
 		"/open-banking/pisp/domestic-payment-consents/{consent_id}": {
 			"get": {
 				"tags": [
-					"Open Banking: Payment Initiation Service Provider (PISP)"
+					"OB: PISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get the state of a consent resource.",
+				"description": "Get the state of a consent resource which has been previously created.",
 				"operationId": "ob-get-payment-consent",
 				"parameters": [
 					{
@@ -3497,7 +3509,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -3565,10 +3577,10 @@
 		"/open-banking/aisp/accounts/{account_id}": {
 			"get": {
 				"tags": [
-					"Open Banking: Account Information Service Provider (AISP)"
+					"OB: AISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get account details.",
+				"description": "Retrieve details for the account for which consent was granted.\n\nSee the API documentation for a full description of the different actors involved with the\nopen banking APIs.",
 				"operationId": "ob-get-account-details",
 				"parameters": [
 					{
@@ -3602,7 +3614,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -3684,10 +3696,10 @@
 		"/open-banking/aisp/accounts/{account_id}/party": {
 			"get": {
 				"tags": [
-					"Open Banking: Account Information Service Provider (AISP)"
+					"OB: AISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get party details.",
+				"description": "Retrieve details about the party which owns the account and has granted consent to access their data.\n\nSee the API documentation for a full description of the different actors involved with the\nopen banking APIs.",
 				"operationId": "ob-get-party-details",
 				"parameters": [
 					{
@@ -3721,7 +3733,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -3803,10 +3815,10 @@
 		"/open-banking/aisp/account-access-consents/{consent_id}": {
 			"get": {
 				"tags": [
-					"Open Banking: Account Information Service Provider (AISP)"
+					"OB: AISP"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get the state of a consent.",
+				"description": "Retrieve the latest state of a specific consent resource.\n\nSee the API documentation for a full description of the different actors involved with the\nopen banking APIs.",
 				"operationId": "ob-get-account-access-consent",
 				"parameters": [
 					{
@@ -3840,7 +3852,7 @@
 					{
 						"name": "x-requesting-banking-entity-id",
 						"in": "header",
-						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.",
+						"description": "Identifier for the banking entity (commercial bank/pip) which you are simulating is making this API call.\nThis is the banking entity which needs to have been granted consent from the party.",
 						"required": true,
 						"content": {
 							"*/*": {
@@ -3910,7 +3922,7 @@
 				"tags": [
 					"Sandbox Environment"
 				],
-				"summary": "Retrieve a description of a specific environment.",
+				"summary": "Get a description of a specific environment.",
 				"description": "Returns a description of a specific environment.",
 				"operationId": "get-env",
 				"parameters": [
@@ -4034,8 +4046,8 @@
 				"tags": [
 					"Ecosystem Service: Domestic Payment Processor"
 				],
-				"summary": ".",
-				"description": ".",
+				"summary": "Get details about a payment.",
+				"description": "Retrieve the latest state of a payment.",
 				"operationId": "domestic-payment-ecosystem-service-get-payment",
 				"parameters": [
 					{
@@ -4125,7 +4137,7 @@
 				"tags": [
 					"Currency"
 				],
-				"summary": "Retrieve details about a specific currency.",
+				"summary": "Get details about a specific currency.",
 				"description": "Retrieve details about a specific currency including the CBDC accounts on the currency's core ledger, as well as the commercial banks and pips registered to operate within that currency.",
 				"operationId": "get-currency",
 				"parameters": [
@@ -4277,7 +4289,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get commercial bank details.",
+				"description": "Retrieve the details of a specific commercial bank.",
 				"operationId": "get-commercial-bank-details",
 				"parameters": [
 					{
@@ -4365,7 +4378,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Terminate a commercial bank.",
+				"description": "Terminate a commercial bank entity. Note: all child resources (parties/accounts) must be terminated as well otherwise this API call will fail.",
 				"operationId": "terminate-commercial-bank",
 				"parameters": [
 					{
@@ -4455,7 +4469,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get details about a specific party registered at a commercial bank.",
+				"description": "Returns the details about the specific party registered at the commercial bank.",
 				"operationId": "get-commercial-bank-party-details",
 				"parameters": [
 					{
@@ -4552,7 +4567,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "De-register a specific party from a commercial bank.",
+				"description": "De-register a specific party from a commercial bank.",
 				"operationId": "deregister-commercial-bank-party",
 				"parameters": [
 					{
@@ -4651,7 +4667,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Get details of a specific account at the commercial bank.",
+				"description": "Get details of a specific account at the commercial bank.\n\n<h2> Balance details </h2>\n\nThe `balance` is given in the units of the currency (for GBP that means pence, for  USD/EUR: cents, etc.).\n\nFor your convenience there is also a field, `formattedBalance` which displays the balance as a decimal number.\n\nFor example if you had £1.03 in the account you would receive a `balance` of 103 and a `formattedBalance` of £1.03.",
 				"operationId": "get-commercial-bank-account",
 				"parameters": [
 					{
@@ -4748,7 +4765,8 @@
 				"tags": [
 					"Commercial Banks"
 				],
-				"summary": ".",
+				"summary": "Close the commercial bank account.",
+				"description": "Close the commercial bank account. Note: the account must have a 0 balance for this API call to succeed.",
 				"operationId": "close-commercial-bank-account",
 				"parameters": [
 					{
@@ -4847,110 +4865,9 @@
 				"tags": [
 					"CBDC Ledger"
 				],
-				"summary": ".",
+				"summary": "Get details about a specific CBDC account.",
+				"description": "Retrieve details about a specific CBDC account including its balance.\n\nAs these details are for an account on the core ledger there is no information about\nthe party which owns the account. This is because the core ledger, by design, does\nnot store any information which can directly identify the party.\n\nThis API endpoint is intended to be used by PIPs.",
 				"operationId": "get-cbdc-account",
-				"parameters": [
-					{
-						"name": "x-env-id",
-						"in": "header",
-						"description": "Identifier for the environment.",
-						"required": true,
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int64"
-								}
-							}
-						}
-					},
-					{
-						"name": "x-currency-id",
-						"in": "header",
-						"description": "Identifier for the currency.",
-						"required": true,
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int64"
-								}
-							}
-						}
-					},
-					{
-						"name": "x-pip-id",
-						"in": "header",
-						"description": "Identifier for the pip which you are simulating is making this API call.",
-						"required": true,
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int64"
-								}
-							}
-						}
-					},
-					{
-						"name": "account_id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int64"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Account Description.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/GetCBDCAccountResponseBody"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Bad/Invalid request.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/BadRequestResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Resource not found.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/NotFoundResponse"
-								}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponseBody"
-								}
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"tags": [
-					"CBDC Ledger"
-				],
-				"summary": ".",
-				"operationId": "close-cbdc-account",
 				"parameters": [
 					{
 						"name": "x-env-id",
@@ -5083,14 +5000,14 @@
 							"REVOKED"
 						]
 					},
-					"consentRequestingPartyId": {
-						"$ref": "#/components/schemas/RequestingPartyId"
+					"consentConsentGrantingPartyId": {
+						"$ref": "#/components/schemas/ConsentGrantingPartyId"
 					},
 					"consentRequestingBankingEntityRef": {
-						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+						"$ref": "#/components/schemas/ConsentRequestingBankingEntityRef"
 					},
-					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
-						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					"bankingEntityWhereConsentGrantingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereConsentGrantingPartyIsRegisteredRef"
 					}
 				}
 			},
@@ -5143,7 +5060,7 @@
 					}
 				}
 			},
-			"BankingEntityWhereRequestingPartyIsRegisteredRef": {
+			"BankingEntityWhereConsentGrantingPartyIsRegisteredRef": {
 				"type": "object",
 				"properties": {
 					"bankingEntityType": {
@@ -5265,6 +5182,31 @@
 						"items": {
 							"$ref": "#/components/schemas/Account"
 						}
+					}
+				}
+			},
+			"ConsentGrantingPartyId": {
+				"type": "object",
+				"properties": {
+					"partyId": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"ConsentRequestingBankingEntityRef": {
+				"type": "object",
+				"properties": {
+					"bankingEntityType": {
+						"type": "string",
+						"enum": [
+							"PAYMENT_INTERFACE_PROVIDER",
+							"COMMERCIAL_BANK"
+						]
+					},
+					"bankingEntityId": {
+						"type": "integer",
+						"format": "int64"
 					}
 				}
 			},
@@ -5866,23 +5808,6 @@
 					}
 				}
 			},
-			"MakeDomesticPaymentRequestBody": {
-				"type": "object",
-				"properties": {
-					"sourceAccountId": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"destinationAccountId": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"paymentAmountInCurrencyUnits": {
-						"type": "integer",
-						"format": "int64"
-					}
-				}
-			},
 			"MakeDomesticPaymentResponseBody": {
 				"type": "object",
 				"properties": {
@@ -5956,14 +5881,14 @@
 			"OpenBankingAccountAccessConsentCreationRequestBody": {
 				"type": "object",
 				"properties": {
-					"requestingPartyId": {
-						"$ref": "#/components/schemas/RequestingPartyId"
+					"consentGrantingPartyId": {
+						"$ref": "#/components/schemas/ConsentGrantingPartyId"
 					},
-					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
-						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					"bankingEntityWhereConsentGrantingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereConsentGrantingPartyIsRegisteredRef"
 					},
-					"requestingBankingEntityRef": {
-						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+					"consentRequestingBankingEntityRef": {
+						"$ref": "#/components/schemas/ConsentRequestingBankingEntityRef"
 					}
 				}
 			},
@@ -5973,14 +5898,14 @@
 					"paymentDetails": {
 						"$ref": "#/components/schemas/PaymentInitiationDetails"
 					},
-					"consentRequestingPartyId": {
-						"$ref": "#/components/schemas/RequestingPartyId"
+					"consentGrantingPartyId": {
+						"$ref": "#/components/schemas/ConsentGrantingPartyId"
+					},
+					"bankingEntityWhereConsentGrantingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereConsentGrantingPartyIsRegisteredRef"
 					},
 					"consentRequestingBankingEntityRef": {
-						"$ref": "#/components/schemas/RequestingBankingEntityRef"
-					},
-					"bankingEntityWhereConsentRequestingPartyIsRegisteredRef": {
-						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+						"$ref": "#/components/schemas/ConsentRequestingBankingEntityRef"
 					}
 				}
 			},
@@ -6108,14 +6033,14 @@
 							"CONSUMED"
 						]
 					},
-					"consentRequestingPartyId": {
-						"$ref": "#/components/schemas/RequestingPartyId"
+					"consentConsentGrantingPartyId": {
+						"$ref": "#/components/schemas/ConsentGrantingPartyId"
 					},
 					"consentRequestingBankingEntityRef": {
-						"$ref": "#/components/schemas/RequestingBankingEntityRef"
+						"$ref": "#/components/schemas/ConsentRequestingBankingEntityRef"
 					},
-					"bankingEntityWhereRequestingPartyIsRegisteredRef": {
-						"$ref": "#/components/schemas/BankingEntityWhereRequestingPartyIsRegisteredRef"
+					"bankingEntityWhereConsentGrantingPartyIsRegisteredRef": {
+						"$ref": "#/components/schemas/BankingEntityWhereConsentGrantingPartyIsRegisteredRef"
 					},
 					"paymentDetails": {
 						"$ref": "#/components/schemas/PaymentInitiationDetails"
@@ -6133,7 +6058,7 @@
 						"type": "integer",
 						"format": "int64"
 					},
-					"paymentAmount": {
+					"paymentAmountInCurrencyUnits": {
 						"type": "integer",
 						"format": "int64"
 					}
@@ -6200,31 +6125,6 @@
 							"ACTIVE",
 							"INACTIVE"
 						]
-					}
-				}
-			},
-			"RequestingBankingEntityRef": {
-				"type": "object",
-				"properties": {
-					"bankingEntityType": {
-						"type": "string",
-						"enum": [
-							"PAYMENT_INTERFACE_PROVIDER",
-							"COMMERCIAL_BANK"
-						]
-					},
-					"bankingEntityId": {
-						"type": "integer",
-						"format": "int64"
-					}
-				}
-			},
-			"RequestingPartyId": {
-				"type": "object",
-				"properties": {
-					"partyId": {
-						"type": "integer",
-						"format": "int64"
 					}
 				}
 			}
