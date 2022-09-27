@@ -13,8 +13,16 @@ class CheckPings : FlowLogic<List<String>>() {
     override fun call(): List<String> {
         val startService = serviceHub.cordaService(StartCordaService::class.java)
 
-        val publicPing = startService.getPublicPing().getOrThrow().message
-        val authPing = startService.getAuthPing().getOrThrow().message
+        val publicPing = try {
+            startService.getPublicPing().getOrThrow().message
+        } catch (e: Exception) {
+            e.message!!
+        }
+        val authPing = try {
+            startService.getAuthPing().getOrThrow().message
+        } catch (e: Exception) {
+            e.message!!
+        }
 
         return listOf(publicPing, authPing)
     }
