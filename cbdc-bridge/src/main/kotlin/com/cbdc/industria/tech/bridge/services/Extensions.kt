@@ -62,6 +62,7 @@ inline fun <reified T : Any> handleRequest(req: Request): Result<T, FuelError> {
             req.responseObject(PaymentDeserializer<T>(mapper = jacksonObjectMapper))
         }
 
+    @Suppress("UNCHECKED_CAST")
     return result as Result<T, FuelError>
 }
 
