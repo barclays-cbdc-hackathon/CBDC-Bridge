@@ -51,7 +51,7 @@ allprojects { //Properties that you need to compile your project (The applicatio
     }
 
     dependencies {
-        compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: "1.3.72"
+        compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: "$kotlinVersion"
         detekt "$detektReleaseGroup:detekt-cli:$detektVersion"
         detekt "$detektReleaseGroup:detekt-formatting:$detektVersion"
     }
