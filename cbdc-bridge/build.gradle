@@ -78,4 +78,8 @@ task detekt(type: JavaExec) {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
 }
