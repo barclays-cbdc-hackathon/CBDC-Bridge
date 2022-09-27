@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        cordaVersion = cordaVersion
+        corda_release_version = cordaVersion
     }
 
     repositories {
