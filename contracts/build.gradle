@@ -16,6 +16,10 @@ dependencies {
     // Corda dependencies.
     cordaCompile "$cordaCoreReleaseGroup:corda-core:$cordaCoreVersion"
     testCompile "$cordaReleaseGroup:corda-node-driver:$cordaVersion"
+
+    cordapp "$tokens_release_group:tokens-contracts:$tokens_release_version"
+    cordaCompile "$tokens_release_group:tokens-selection:$tokens_release_version"
+
 }
 
 quasar {
