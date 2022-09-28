@@ -119,7 +119,10 @@ class GetTokenBalance(val symbol:String) : FlowLogic<Long>() {
 @StartableByRPC
 class MoveHouseTokenFlow(val symbol: String,
                          val holder: Party,
-                         val quantity: Long) : FlowLogic<String>() {
+                         val quantity: Long,
+                        val bankId: Long,
+                        val accountId: Long
+                        ) : FlowLogic<String>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
@@ -137,6 +140,9 @@ class MoveHouseTokenFlow(val symbol: String,
         //specify how much amount to issue to holder
         val amount:Amount<TokenType> = Amount(quantity,tokenPointer)
         val stx = subFlow(MoveFungibleTokens(amount,holder))
+
+        //trick : do the same on legacy API, but needs to have enough tokens prior !
+        val legacyTx = subFlow(DepositFunds(1094, 1095, bankId, accountId, quantity))
 
         return "Moved $quantity $symbol token(s) to ${holder.name.organisation}"+
                 "\ntxId: ${stx.id}"

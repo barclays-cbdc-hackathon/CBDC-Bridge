@@ -8,6 +8,7 @@ import net.corda.core.utilities.getOrThrow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -64,10 +65,20 @@ class Controller {
     }
 
     @GetMapping("/transfer")
-    fun transferCBOEtoPartyB(): String{
+    fun transferCBOEtoPartyB(
+        @RequestParam("bankId") bankId: Long = 1709,
+        @RequestParam("accountId") accountId: Long = 1920,
+        @RequestParam("qty") qty: Long = 100
+        ): String{
+        println("""
+            making a request to ledger with folowwing parameters:
+            bankId : ${bankId}
+            accountID: ${accountId}
+            qty: ${qty}
+        """.trimIndent())
         val partyName = "O=PartyB,L=New York,C=US"
         val partyX500Name = CordaX500Name.parse(partyName)
         val holder = node.proxy.wellKnownPartyFromX500Name(partyX500Name) ?: return "Party named $partyName cannot be found."
-        return node.proxy.startFlow(::MoveHouseTokenFlow, "EGBP", holder, 100).returnValue.getOrThrow()
+        return node.proxy.startFlow(::MoveHouseTokenFlow, "EGBP", holder, qty, bankId, accountId ).returnValue.getOrThrow()
     }
 }
